@@ -4,10 +4,10 @@ Official storefront and merchandise portal for Shashika Dayarathna, deployed at 
 
 ## Scope & Status
 
-This repository hosts the public showcase for future digital artifacts, engineering schematics, and official brand goods.
+This repository hosts the public concept space for future engineering references, architecture schematics, and developer goods.
 
-- **Current Status**: Storefront in preparation. No products or items are actively offered for sale.
-- **Checkout Policy**: Checkout, payments, and shopping carts are disabled. No commercial transactions are accepted until physical production runs or release packages are certified.
+- **Current Status**: Concept space in preparation. No products or digital items are offered for sale at this time.
+- **Checkout Policy**: Checkout and payment processing are disabled. No transactions or orders are accepted on this domain.
 
 ## Architecture
 

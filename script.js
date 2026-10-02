@@ -61,14 +61,14 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 updateSpace();
 
-// Canvas Starfield Engine
+// Gathering waits for the actual shape to be visible; scattering follows scroll directly.
 (() => {
-    const canvas = document.querySelector('#starfield');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const canvas = document.querySelector('#starfield'), ctx = canvas?.getContext('2d');
     if (!ctx) return;
     const pref = matchMedia('(prefers-reduced-motion: reduce)');
-    let width = 0, height = 0, stars = [], raf = 0, last = 0, elapsed = 0, px = 0, py = 0, tx = 0, ty = 0;
+    const clamp = n => Math.max(0, Math.min(1, n));
+    const smooth = n => n * n * (3 - 2 * n);
+    let width = 0, height = 0, stars = [], shapes = [], raf = 0, last = 0, elapsed = 0, px = 0, py = 0, tx = 0, ty = 0;
 
     function resize() {
         width = innerWidth;
@@ -77,7 +77,7 @@ updateSpace();
         canvas.width = Math.round(width * dpr);
         canvas.height = Math.round(height * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        stars = Array.from({ length: Math.min(180, Math.max(75, Math.round(width * height / 7500))) }, () => ({
+        stars = Array.from({ length: Math.min(200, Math.max(85, Math.round(width * height / 7000))) }, () => ({
             x: Math.random(),
             y: Math.random(),
             r: 0.35 + Math.random(),
@@ -105,6 +105,31 @@ updateSpace();
             const x = (s.x * width + (motion ? elapsed * 0.004 * s.d + px * s.d : 0) + width) % width;
             const y = (s.y * height + (motion ? -elapsed * 0.0018 * s.d + py * s.d - scrollY * 0.018 * s.d : 0) + height * 100) % height;
             dot(x, y, s.r, motion ? 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(elapsed * 0.0006 + s.phase)) : 0.5);
+        }
+
+        for (const shape of shapes) {
+            const section = shape.section.getBoundingClientRect(), box = shape.anchor.getBoundingClientRect();
+            const visibleHeight = Math.max(0, Math.min(box.bottom, height * 0.94) - Math.max(box.top, 100));
+            const visibleRatio = visibleHeight / Math.max(1, Math.min(box.height, height * 0.8));
+            if (visibleHeight === 0) { shape.armed = false; shape.progress = 0; }
+            if (section.bottom < -height * 0.25 || section.top > height * 1.25) continue;
+            if (visibleRatio >= 0.55) shape.armed = true;
+            const entering = clamp((height * 0.95 - section.top) / (height * 0.4));
+            const leaving = clamp((section.bottom - height * 0.15) / (height * 0.65));
+            const target = shape.armed ? smooth(Math.min(entering, leaving)) : 0;
+            if (target > shape.progress) shape.progress = Math.min(target, shape.progress + dt / 2200);
+            else shape.progress = target;
+            const progress = motion ? shape.progress : 1;
+            const visible = clamp((height * 1.12 - section.top) / (height * 0.25)) * clamp((section.bottom + height * 0.15) / (height * 0.25));
+            if (!visible) continue;
+            const sw = Math.min(box.width, box.height * shape.ratio), sh = sw / shape.ratio, ox = box.left + (box.width - sw) / 2, oy = box.top + (box.height - sh) / 2;
+            for (const p of shape.points) {
+                const targetX = ox + p.u * sw, targetY = oy + p.v * sh;
+                const spreadX = p.x * width, spreadY = p.y * height;
+                const x = spreadX * (1 - progress) + targetX * progress, y = spreadY * (1 - progress) + targetY * progress;
+                const shimmer = motion ? 0.75 + 0.15 * Math.sin(elapsed * 0.001 + p.phase) : 0.85;
+                dot(x, y, p.r, ((shape.armed ? 0.13 : 0.025) + 0.575 * progress) * visible * shimmer, p.lime);
+            }
         }
     }
 
@@ -137,4 +162,32 @@ updateSpace();
     pref.addEventListener('change', start);
     resize();
     start();
+
+    fetch('particle-shapes.json?v=2.1').then(r => {
+        if (!r.ok) throw Error('Shapes unavailable');
+        return r.json();
+    }).then(data => {
+        shapes = [...document.querySelectorAll('[data-particle]')].map(anchor => {
+            const spec = data[anchor.dataset.particle];
+            if (!spec) return null;
+            return {
+                anchor,
+                armed: false,
+                progress: 0,
+                section: anchor.closest('section') || anchor.parentElement,
+                ratio: spec.ratio,
+                points: spec.points.map(([u, v], i) => ({
+                    u, v,
+                    x: Math.random(),
+                    y: Math.random(),
+                    r: 0.65 + Math.random() * 0.65,
+                    phase: Math.random() * 6.28,
+                    lime: i % 8 === 0
+                }))
+            };
+        }).filter(Boolean);
+        draw(0);
+    }).catch(e => {
+        console.warn('Particle shapes fallback:', e);
+    });
 })();

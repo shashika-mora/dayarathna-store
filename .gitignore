@@ -1,0 +1,7 @@
+.DS_Store
+Thumbs.db
+.workspace
+AGENTS.md
+GEMINI.md
+.github/copilot-instructions.md
+.firebase/

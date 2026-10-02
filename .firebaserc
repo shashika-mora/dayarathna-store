@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "shashika-dev"
+  },
+  "targets": {
+    "shashika-dev": {
+      "hosting": {
+        "store": [
+          "shashika-dev-store"
+        ]
+      }
+    }
+  }
+}

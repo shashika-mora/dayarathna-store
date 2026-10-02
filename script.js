@@ -59,6 +59,10 @@ window.addEventListener('scroll', () => {
         requestAnimationFrame(updateSpace);
     }
 }, { passive: true });
+backTop?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 updateSpace();
 
 // Gathering waits for the actual shape to be visible; scattering follows scroll directly.

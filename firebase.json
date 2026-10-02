@@ -8,7 +8,16 @@
       "firebase.json",
       "**/.*",
       "**/.*/**",
-      "README.md"
+      "*.md",
+      "**/*.md",
+      "*.zip",
+      "*.tar",
+      "*.gz",
+      "*.log",
+      "doc/**",
+      "docs/**",
+      "package*.json",
+      "node_modules/**"
     ],
     "headers": [
       {

@@ -1,7 +1,13 @@
 .DS_Store
 Thumbs.db
-.workspace
+.workspace/
+.gemini/
 AGENTS.md
 GEMINI.md
 .github/copilot-instructions.md
 .firebase/
+*.log
+firebase-debug.log*
+.env*
+node_modules/
+*.zip
